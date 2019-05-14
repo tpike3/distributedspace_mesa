@@ -1,0 +1,56 @@
+Metadata-Version: 1.1
+Name: distributedspace-mesa
+Version: 0.0.1
+Summary: Provides Extension module to Mesa to distribute grid over multiple processors
+Home-page: https://github.com/tpike3/distributedspace_mesa
+Author: Tom Pike
+Author-email: tpike3@gmu.edu
+License: UNKNOWN
+Description: # Distributed Space Mesa
+        
+        Distributed Space Mesa is a library which supports Python's Agent Based Modeling Library Mesa. 
+        
+        
+        **Figure 1**
+        
+        ## Requirements
+        
+        Multi-level Mesa requires
+        
+            Mesa>=0.8.4
+            NetworkX>=2.2
+            Pathos>=0.2.3  
+        
+        ## Installation 
+        
+            pip install distirbutedspace_mesa
+        
+        ## Examples of Disitrbuted Space Mesa
+        
+        Examples of multilevel_mesa are available at [Sugarscape Models]:https://github.com/tpike3/SugarScape
+        
+        These examples are various instantiations of the Sugar and Spice trading model described in Chapter 4 of *Growing Artificial Societies* by ROb Axtell and Joshua Epstein.   
+        
+        ## Creating a Distributed Space Mesa Instance and the Multi-level Mesa Managers
+        
+        
+        
+        ## Happy Modeling!
+        
+        
+        
+        
+        
+            
+        
+Keywords: agent based modeling model ABM simulation multi-agent distribution
+Platform: UNKNOWN
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Artificial Life
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Natural Language :: English
