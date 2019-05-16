@@ -1,6 +1,6 @@
 # Distributed Space Mesa
 
-Distributed Space Mesa is a library which supports Python's Agent Based Modeling Library Mesa. It is useable but currently only provides modest benefits to run time for large agent models (greater than 10,000 agents) over 2 processors. It can use n processors but these arragements only provides only minimal improvements. 
+Distributed Space Mesa is a library which supports Python's Agent Based Modeling Library Mesa. It is useable but currently only provides modest benefits to run time for large agent models (greater than 10,000 agents) over 2 processors. It can use n processors but more than 2 only provides only minimal improvements. 
 
 
 ## Requirements
@@ -17,7 +17,7 @@ Multi-level Mesa requires
 
 ## Examples of Distributed Space Mesa
 
-Examples of multilevel_mesa are available at [Sugarscape Models]:https://github.com/tpike3/SugarScape
+Examples of multilevel_mesa are available at [Sugarscape Development Model]:https://github.com/tpike3/distributedspace-test
 
 These examples are various instantiations of the Sugar and Spice trading model described in Chapter 4 of *Growing Artificial Societies* by Rob Axtell and Joshua Epstein.   
 
@@ -97,7 +97,7 @@ Due to complications which arise in debugging users should first use the test mo
 
 DS Mesa divides the space into portions, with wrap around capability (if desired) to create a torus (see figure below). Each space also has a buffer in which it stores a copy of a certain numbers of cells from its neighbors. A network using Python’s Multi-Processing pipes construct is then established between each neighboring space. Agents traversing the landscape can then see their neighbor’s status at the conclusion of the previous step and decide if based on their movement algorithm it is in their best interest be sent to the processor handling their neighbor. DS Mesa then takes care of the requirements of creating n number of copies of the model, establishing a version of the model on n processors and then linking the network of pipes so the correct processors are sending and receiving the correct buffers and agents. This set up however, has some limiting challenges. 
 
-![How the Space is split]
+![How the Space is split](https://github.com/tpike3/distributedspace_mesa/blob/master/picture/Torus.png)
 
 ## Happy Modeling!
 
