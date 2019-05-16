@@ -17,7 +17,7 @@ Multi-level Mesa requires
 
 ## Examples of Distributed Space Mesa
 
-Examples of multilevel_mesa are available at [Sugarscape Development Model]:https://github.com/tpike3/distributedspace-test
+Examples of multilevel_mesa are available at [Sugarscape Development Model](https://github.com/tpike3/distributedspace-test)
 
 These examples are various instantiations of the Sugar and Spice trading model described in Chapter 4 of *Growing Artificial Societies* by Rob Axtell and Joshua Epstein.   
 
