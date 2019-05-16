@@ -1,11 +1,11 @@
 # Distributed Space Mesa
 
-Distributed Space Mesa is a library which supports Python's Agent Based Modeling Library Mesa. It is useable but currently only provides modest benefits to run time for large agent models (greater than 10,000 agents) over 2 processors. It can use n processors but more than 2 only provides only minimal improvements. 
+Distributed Space Mesa is a library which supports Python's Agent Based Modeling Library Mesa. It is usable but currently only provides modest benefits to run time for large agent models (greater than 10,000 agents) over 2 processors. It can use n processors but more than 2 only provides only minimal improvements. 
 
 
 ## Requirements
 
-Multi-level Mesa requires
+Distributed Space Mesa requires
 
     Mesa>=0.8.4
     NetworkX>=2.2
@@ -23,7 +23,7 @@ These examples are various instantiations of the Sugar and Spice trading model d
 
 ## Creating a Distributed Space Mesa Instance and the Multi-level Mesa Managers
 
-Due to complications which arise in debugging users should first use the test module to ensure there are no issues prior to running a distirbuted a model. The test model creates a pseudo disitrbuted model which mimics the behavior of DS Mesa
+Due to complications which arise in debugging users should first use the test module to ensure there are no issues prior to running a distributed a model. The test model creates a pseudo distributed model which mimics the behavior of DS Mesa
 
 ### Test instance of DS Mesa
 
@@ -71,7 +71,7 @@ Due to complications which arise in debugging users should first use the test mo
 
 ### Required Parameters
 
-**model** - Users must pass in their Mesa model instance. DS then make *n* copies of the model and splits the agent population as apprioriate to be on the same portion of the grid.  
+**model** - Users must pass in their Mesa model instance. DS then make *n* copies of the model and splits the agent population as appropriate to be on the same portion of the grid.  
 
 **step finish function** - Users must pass in a *step finish* function. Agents being passed from one processor to another processor make their decisions base don the status of the other processor at the end of the previous step. THey then arrive at the end of the next step. As the situation of the target location may have changed the step_finish function is necessary to ensure the User understands this and provides processors to minimize impact on emergent behavior. 
 
@@ -80,7 +80,7 @@ Due to complications which arise in debugging users should first use the test mo
 
 **args** - Additional optional arguments for the step finish function if needed.
 
-**split** - Number of processors to use, if 0 module will idnteify number of avialable processrs and use that. Currently reocmmend user only uses 2. 
+**split** - Number of processors to use, if 0 module will identify number of available processes and use that. Currently recommend user only uses 2. 
 
 **buffer** - Number of columns into neighboring buffer.
 
@@ -97,7 +97,7 @@ Due to complications which arise in debugging users should first use the test mo
 
 DS Mesa divides the space into portions, with wrap around capability (if desired) to create a torus (see figure below). Each space also has a buffer in which it stores a copy of a certain numbers of cells from its neighbors. A network using Python’s Multi-Processing pipes construct is then established between each neighboring space. Agents traversing the landscape can then see their neighbor’s status at the conclusion of the previous step and decide if based on their movement algorithm it is in their best interest be sent to the processor handling their neighbor. DS Mesa then takes care of the requirements of creating n number of copies of the model, establishing a version of the model on n processors and then linking the network of pipes so the correct processors are sending and receiving the correct buffers and agents. This set up however, has some limiting challenges. 
 
-![How the Space is split](https://github.com/tpike3/distributedspace_mesa/blob/master/picture/Torus.png)
+![How the space is split](https://github.com/tpike3/distributedspace_mesa/blob/master/picture/Torus.png)
 
 ## Happy Modeling!
 
