@@ -2,7 +2,13 @@
 """
 Created on Mon Mar 18 11:34:33 2019
 
-@author: ymamo
+THis module is a first attempt at creating an easily used distributed space 
+library for Mesa. 
+
+Conceptutally this library splits the grid into the number of processors with a
+buffer on each side, it then creates a netwrok of the processors and passes
+information on each time step between each processor.  
+
 """
 
 from pathos.pools import ProcessPool
@@ -21,15 +27,28 @@ import time
 from mesa import space as prespace
 
 class Space_Distribute():
+    '''
+    Initiaties the disitrbuted space instance.
+    
+    There are three main parts to this instance:
+        
+        1. Splitting the grid
+        2. Messgain Passing which also requires a class
+        3. Recombining the data for output
+    
+    '''
+    
     
     def __init__(self, model, step_finish, args = None, split = 0, buffer = 6,\
                  recombine = None,recombine_args = None, verbose = False, \
                  boundary_pass = 1):
         
-        
+        #Creates an instance of the model changing the Mesa space to the
+        #distributed space
         self.model = self.grid_adjust(model)
         #add in function to finish steps
         self.step_finish = step_finish
+        #optional arguments for step_finish function 
         self.step_args = args
         
         #Get the number of CPUs unless user specified
@@ -42,31 +61,34 @@ class Space_Distribute():
         #create the number of process available
         self.pool = ProcessPool(nodes = self.ncpus)
         self.pipes = self.pipe_setup(self.ncpus)
-        
+        #buffer size
         self.buffer = buffer
         self.multi_models = collections.OrderedDict()
         #dictionary to track when all steps on each processor complete
         self.sync_status = collections.OrderedDict() 
-        
-        
         #add ability for user to deconflict
         self.boundary_pass = boundary_pass
         
-        
-        
+        #Either use the default recombine function or the user adds their own       
         if recombine == None: 
             self.recombine = self.recombine_default
             self.recombine_args = recombine_args
         else:
             self.recombine = recombine
             self.recombine_args = recombine_args
-            
+        #if True tells the user what is being recombined and what is being
+        #ignored
         self.verbose = verbose
         
     
     
     def grid_adjust(self, model):
-        
+        '''
+        Initiation helper function 
+        Creates an instance of the grid switching from space to 
+        distribute_space
+        '''
+                
         #create instance of distributed_space, replicating the model
         if isinstance(model.grid, prespace.MultiGrid):
             new_grid = ds.MultiGrid(width = model.grid.width, \
@@ -97,6 +119,10 @@ class Space_Distribute():
     def run(self, steps, model, pipes):
         
         '''
+        Main message step function and message passing
+        Steps the processor and passes cells back and forth. 
+        Also ensures model stays synchronized
+        
         Data Structure for pipes: 
             [[reader_from_left, writer_to left],[reader_from_right, writer_to_right]]
             eg for 3 processors: 
@@ -116,6 +142,7 @@ class Space_Distribute():
                 model.message.right_finish = False                
                 model.step()
                             
+                #iterator for passing messages back and forth
                 for i in range(self.boundary_pass):
                     #Function turn send_right, receive_right, receive_left... to False
                     #Message turns values to True
@@ -534,11 +561,15 @@ class Space_Distribute():
     #################################################################
     #
     #
-    #                 Message Pass
+    #                 Pipe Set up
     #
     ################################################################
     
     def pipe_setup(self, number_processes):
+        
+        '''
+        Helper function to set up intial pipe reader and writers
+        '''
         
         pipes = {"left" : [], "right" : []}
         
@@ -552,6 +583,18 @@ class Space_Distribute():
         return pipes
             
     def pipe_assign(self):
+        
+        '''
+        Helper function
+        
+        After creating initial pipes assigns to processors so they know where 
+        to read and were to write 
+        
+         Data Structure for pipes: 
+            [[reader_from_left, writer_to left],[reader_from_right, writer_to_right]]
+            eg for 3 processors: 
+                2 to 0           0 to 2             1 to 0             0 to 1
+        '''
         
         assign_pipe = []
         
@@ -605,28 +648,27 @@ class Space_Distribute():
             #Set status of model to false for synchronization of steps
             self.sync_status[mod_pos] = False
             mod_pos += 1
-        #prevent divergent copies of a single model and multiple models
-        #self.model = self.multi_models
+        
         
         step_list = [steps] * self.ncpus
         #print (step_list)
         
         models = list(self.multi_models.values())
         #print ("model size", asizeof.asizeof(models))
-        #Create message passing instructions
-               
+        
+        
+        #Create message passing infrastructure
         pipes_list = self.pipe_assign() 
 
+        #Creates pool of processors and runs the model
         results = self.pool.map(self.run, step_list, models, pipes_list)
                 
+        #Processes the results
         for i in range(len(results)):
             self.multi_models[i] = results[i]
             
         self.recombine()
-        
-        #stop
-        #results = self.run(steps)
-        
+                
         return (results, self.model)
         
         
@@ -635,7 +677,9 @@ class Message:
         '''
         Message passing class for each model 
         
-        Stores left and right neighbors, and finishing method        
+        Stores left and right neighbors, and finishing method  
+        
+        Tracks progress and passes the messages between each processor
         '''
         
     
@@ -681,6 +725,11 @@ class Message:
             
         def create_dummy_buffer(self, buffer):
             
+            '''
+            Helper function to have empy buffer to be filled reduces
+            copying requirements
+            '''
+            
             dummy_buffer = []
             
             for row in range(buffer):
@@ -692,12 +741,21 @@ class Message:
         
         def adj_units_left(self, mod_pos):
             
+            '''
+            Helper function ID left neighbor
+            '''
+            
             if mod_pos == 0: 
                 return (self.ncpus-1)
             else: 
                 return mod_pos-1
             
         def adj_units_right(self,mod_pos):
+            
+            '''
+            Helper function ID right neighbor            
+            '''
+            
             
             if mod_pos == (self.ncpus-1):
                 return 0
@@ -739,6 +797,11 @@ class Message:
         
         def send_prep(self,iteration):
             
+            '''
+            Helper function preps for message passing to ensure everything 
+            passed and synchronized
+            '''
+            
             self.bus_right_keys = list(self.model.grid.bus_to_right.keys())
             self.bus_left_keys = list(self.model.grid.bus_to_left.keys())
             self.right_sent_buffer_x = 0
@@ -758,6 +821,10 @@ class Message:
             
                
         def send_right(self, pipe):
+            
+            '''
+            Function for sending to right neighbor
+            '''
             
             #send the bus
             if len(self.bus_right_keys) > 0: 
@@ -791,10 +858,18 @@ class Message:
                  self.send_right_complete = True
         
         def send_complete_right(self, pipe):
+            '''
+            Helper function send complete notification
+            '''
+            
             pipe.send((None, "left_finished"))
             
         def receive_right(self, pipe):
                                     
+            '''
+            Message receving function 
+            '''
+            
             message = pipe.recv()
                        
             
@@ -833,6 +908,11 @@ class Message:
         
         def send_left(self, pipe):
             
+            '''
+            Send to left process
+            '''
+            
+            
             #send the bus
             if len(self.bus_left_keys) > 0: 
                 
@@ -865,6 +945,10 @@ class Message:
             
             
         def send_complete_left(self, pipe):
+            
+            '''
+            Helper function to say when something is complete
+            '''
             
             pipe.send((None, "right_finished"))
                          
@@ -909,6 +993,9 @@ class Message:
                
         def process_left_neighbor(self):
             
+            '''
+            Takes messages and updates appriopriate parts of the model
+            '''
             #update buffer
             #del model.grid.buffer['left']
             #TODO: Optimization point
@@ -937,6 +1024,10 @@ class Message:
             
                 
         def process_right_neighbor(self):
+            
+            '''
+            Takes messages and updattes appropriate parts of the model
+            '''
             
             #del model.grid.buffer['right']
             self.model.grid.buffer['right'] = self.right_new_buffer
